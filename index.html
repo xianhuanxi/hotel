@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丈八一路酒店信息管理</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; min-height: 100vh; position: relative; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .home { text-align: center; padding: 20px; }
+        .home h1 { margin-bottom: 20px; }
+        #searchInput, #searchStatus { padding: 10px; margin: 10px 0; width: 80%; max-width: 300px; }
+        .distance-options { margin: 10px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .distance-options label { margin-right: 15px; font-size: 14px; }
+        #searchBtn, #randomBtn { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; margin: 5px; }
+        #searchBtn:hover, #randomBtn:hover { background-color: #45a049; }
+        .header { position: sticky; top: 0; background-color: #fff; padding: 10px; border-bottom: 1px solid #ddd; z-index: 1000; display: flex; align-items: center; }
+        .header h1 { margin: 0 10px 0 0; display: inline; }
+        #toggleBtn { padding: 10px 15px; font-size: 16px; background-color: #808080; color: white; border: none; cursor: pointer; }
+        #toggleBtn.expanded { background-color: #4CAF50; }
+        .hotel-list { display: none; }
+        .hotel-item { border: 1px solid #ddd; margin: 10px 0; padding: 10px; background-color: #fff; border-radius: 5px; }
+        .hotel-item.collapsed .details { display: none; }
+        .hotel-name { font-weight: bold; margin-bottom: 5px; display: flex; align-items: flex-start; }
+        .hotel-name .controls { margin-right: 15px; display: flex; flex-direction: column; }
+        .hotel-name input[type="checkbox"] { margin-bottom: 5px; cursor: pointer; }
+        .hotel-name select { margin-bottom: 5px; padding: 2px; }
+        .hotel-name .content { flex-grow: 1; cursor: pointer; }
+        .distance { color: #0066cc; cursor: pointer; margin-left: 10px; }
+        .details { margin-left: 20px; margin-top: 5px; }
+        .distance-edit { display: flex; align-items: flex-start; gap: 10px; margin-top: 10px; }
+        .remarks-label { display: inline-block; vertical-align: top; margin-right: 5px; }
+        .remarks { width: 60%; resize: vertical; min-height: 40px; }
+        .distance-input { width: 80px; padding: 5px; }
+        .save-btn { padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .footer-buttons { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; padding: 10px; border-top: 1px solid #ddd; text-align: center; z-index: 1000; }
+        .back-btn, .life-btn { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; margin-right: 10px; }
+        @media (max-width: 768px) {
+            .header { padding: 5px; } #searchInput, #searchStatus { width: 90%; } .hotel-item { padding: 8px; }
+            .distance { font-size: 14px; } .back-btn, .life-btn { padding: 6px 12px; font-size: 12px; }
+            .footer-buttons { padding: 5px; } .remarks { width: 50%; } .distance-input { width: 60px; }
+            .save-btn { padding: 4px 8px; font-size: 12px; } #toggleBtn { padding: 8px 12px; font-size: 14px; }
+            .distance-options label { margin-right: 10px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="home" id="homePage">
+            <h1>丈八一路酒店信息</h1>
+            <input type="text" id="searchInput" placeholder="按酒店名称搜索...">
+            <div class="distance-options">
+                <label><input type="checkbox" name="distance" value="all" checked> 全部</label>
+                <label><input type="checkbox" name="distance" value="0-1"> 1km内</label>
+                <label><input type="checkbox" name="distance" value="1-2"> 1-2km</label>
+                <label><input type="checkbox" name="distance" value="2-3"> 2-3km</label>
+                <label><input type="checkbox" name="distance" value="3-4"> 3-4km</label>
+                <label><input type="checkbox" name="distance" value="4+"> 4km+</label>
+            </div>
+            <select id="searchStatus">
+                <option value="">所有状态</option>
+                <option value="待定">待定</option>
+                <option value="跟进">跟进</option>
+                <option value="合作">合作</option>
+                <option value="放弃">放弃</option>
+            </select>
+            <button id="searchBtn" onclick="searchHotels()">搜索</button>
+            <button id="randomBtn" onclick="showRandomHotels()">随机3条未勾选</button>
+        </div>
+        <div class="header">
+            <h1>酒店详情</h1>
+            <button id="toggleBtn" onclick="toggleDetails()">展开</button>
+        </div>
+        <div class="hotel-list" id="hotelList"></div>
+    </div>
+    <div class="footer-buttons">
+        <button class="back-btn" onclick="showHome()">回到首页</button>
+        <button class="life-btn" onclick="openLifeMuseum()">欢喜生活馆</button>
+    </div>
+
+    <script>
+        // 酒店基础数据（需要根据实际测量补充完整）
+        const fullHotels = [
+            { name: "桔子酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口东北角", phone: "+86 29-6825-9777", rooms: "约80-100间", distance: 0.3 },
+            { name: "如家精选酒店 (西安高新区锦业一路丈八四路地铁站店)", address: "锦业一路56号", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 0.4 },
+            { name: "全住酒店 (西安高新区锦业路店)", address: "锦业路附近", phone: "+86 29-8866-1234", rooms: "约60-80间", distance: 0.5 },
+            { name: "橙子酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路东北角王都大厦C座", phone: "+86 400-838-1515", rooms: "约70-90间", distance: 0.6 },
+            { name: "维也纳酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口附近", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 0.7 },
+            { name: "汉庭酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 0.8 },
+            { name: "7天优品酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口附近", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 0.9 },
+            { name: "速8酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 1.0 },
+            { name: "亚朵酒店 (西安高新锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8938-9999", rooms: "约120-150间", distance: 1.1 },
+            { name: "锦江之星 (西安会展中心丈八东路店)", address: "丈八东路8号", phone: "+86 29-8885-6666", rooms: "约80-100间", distance: 1.2 },
+            { name: "格林豪泰酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 1.3 },
+            { name: "莫泰酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 1.4 },
+            { name: "尚客优酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 1.5 },
+            { name: "如家快捷酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 1.6 },
+            { name: "布丁酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 1.7 },
+            { name: "海友酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 1.8 },
+            { name: "派酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 1.9 },
+            { name: "城市便捷酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 2.0 },
+            { name: "西安高新希尔顿花园酒店", address: "锦业路与科技路交叉口", phone: "+86 29-8789-0000", rooms: "约200-250间", distance: 2.1 },
+            { name: "美豪丽致酒店 (西安高新区店)", address: "丈八六路附近", phone: "+86 29-8919-8888", rooms: "约100-130间", distance: 2.2 },
+            { name: "全季酒店 (西安高新区锦业路店)", address: "锦业路与科技路交叉口", phone: "+86 29-8885-9999", rooms: "约100-120间", distance: 2.3 },
+            { name: "喆啡酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8885-9999", rooms: "约80-100间", distance: 2.4 },
+            { name: "星程酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 29-8822-5678", rooms: "约90-110间", distance: 2.5 },
+            { name: "麗枫酒店 (西安高新区锦业路店)", address: "锦业路与科技路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 2.6 },
+            { name: "宜必思酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 2.7 },
+            { name: "OYO酒店 (西安高新区锦业路店)", address: "锦业路与丈八东路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 2.8 },
+            { name: "维也纳国际酒店 (西安高新区科技路店)", address: "科技路与锦业路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 2.9 },
+            { name: "7天连锁酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 3.0 },
+            { name: "西安君悦酒店 (Grand Hyatt Xi'an)", address: "锦业路12号", phone: "+86 29-8816-1234", rooms: "约300-350间", distance: 3.1 },
+            { name: "假日酒店 (西安绿地店)", address: "锦业路与丈八六路交叉口", phone: "+86 29-8818-1188", rooms: "约150-200间", distance: 3.2 },
+            { name: "汉庭酒店 (西安丈八北路地铁站店)", address: "丈八北路博悦大厦", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 3.3 },
+            { name: "如家酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 3.4 },
+            { name: "锦江之星品尚 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 29-8885-6666", rooms: "约90-110间", distance: 3.5 },
+            { name: "布丁酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 3.6 },
+            { name: "派酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 3.7 },
+            { name: "城市便捷酒店 (西安科技路店)", address: "科技路与丈八六路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 3.8 },
+            { name: "速8精选酒店 (西安高新区丈八路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8888-0088", rooms: "约60-80间", distance: 3.9 },
+            { name: "格林联盟酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 29-8899-6666", rooms: "约70-90间", distance: 4.0 },
+            { name: "亚朵轻居酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8938-9999", rooms: "约80-100间", distance: 4.1 },
+            { name: "汉庭优佳酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8832-5678", rooms: "约90-110间", distance: 4.2 },
+            { name: "维也纳3好酒店 (西安高新区丈八路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8885-5333", rooms: "约80-100间", distance: 4.3 },
+            { name: "莫泰168酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 4.4 },
+            { name: "7天连锁酒店 (西安丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 4.5 },
+            { name: "如家精选酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 4.6 },
+            { name: "格林豪泰快捷酒店 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 4.7 },
+            { name: "速8酒店 (西安科技路西口店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 4.8 },
+            { name: "尚客优精选酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 400-666-3333", rooms: "约70-90间", distance: 4.9 },
+            { name: "麗枫酒店 (西安丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 5.0 },
+            { name: "全季酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8885-9999", rooms: "约100-120间", distance: 2.2 },
+            { name: "喆啡酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8885-9999", rooms: "约80-100间", distance: 2.3 },
+            { name: "星程酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8822-5678", rooms: "约90-110间", distance: 2.4 },
+            { name: "锦江之星风尚 (西安高新区锦业路店)", address: "锦业路与丈八四路交叉口", phone: "+86 29-8885-6666", rooms: "约80-100间", distance: 2.5 },
+            { name: "格林豪泰酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 2.6 },
+            { name: "7天优品酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 2.7 },
+            { name: "速8酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 2.8 },
+            { name: "莫泰酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 2.9 },
+            { name: "尚客优酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 3.0 },
+            { name: "如家快捷酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 3.1 },
+            { name: "布丁酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 3.2 },
+            { name: "海友酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 3.3 },
+            { name: "派酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 3.4 },
+            { name: "城市便捷酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 3.5 },
+            { name: "麗枫酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 3.6 },
+            { name: "宜必思酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 3.7 },
+            { name: "OYO酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 3.8 },
+            { name: "维也纳国际酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 3.9 },
+            { name: "7天连锁酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 4.0 },
+            { name: "如家精选酒店 (西安高新区科技路店)", address: "科技路与丈八北路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 4.1 },
+            { name: "格林豪泰快捷酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 4.2 },
+            { name: "汉庭酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 4.3 },
+            { name: "速8酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 4.4 },
+            { name: "莫泰酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 4.5 },
+            { name: "尚客优酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 4.6 },
+            { name: "如家快捷酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 4.7 },
+            { name: "布丁酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 4.8 },
+            { name: "海友酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 4.9 },
+            { name: "派酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 5.0 },
+            { name: "城市便捷酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 2.2 },
+            { name: "麗枫酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 2.3 },
+            { name: "宜必思酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 2.4 },
+            { name: "OYO酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 2.5 },
+            { name: "维也纳国际酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 2.6 },
+            { name: "7天连锁酒店 (西安高新区丈八北路店)", address: "丈八北路与科技路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 2.7 },
+            { name: "如家精选酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 2.8 },
+            { name: "格林豪泰快捷酒店 (西安高新区丈八北路店)", address: "丈八北路与锦业路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 2.9 },
+            { name: "汉庭酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 3.0 },
+            { name: "速8酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 3.1 },
+            { name: "莫泰酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 3.2 },
+            { name: "尚客优酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 3.3 },
+            { name: "如家快捷酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 3.4 },
+            { name: "布丁酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 3.5 },
+            { name: "海友酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 3.6 },
+            { name: "派酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 3.7 },
+            { name: "城市便捷酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 3.8 },
+            { name: "麗枫酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 3.9 },
+            { name: "宜必思酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 4.0 },
+            { name: "OYO酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 4.1 },
+            { name: "维也纳国际酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 4.2 },
+            { name: "7天连锁酒店 (西安高新区锦业二路店)", address: "锦业二路与科技路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 4.3 },
+            { name: "如家精选酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 4.4 },
+            { name: "全季酒店 (西安高新区锦业二路店)", address: "锦业二路与丈八东路交叉口", phone: "+86 29-8885-9999", rooms: "约100-120间", distance: 2.1 },
+            { name: "喆啡酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8885-9999", rooms: "约80-100间", distance: 2.2 },
+            { name: "星程酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 29-8822-5678", rooms: "约90-110间", distance: 2.3 },
+            { name: "锦江之星风尚 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 29-8885-6666", rooms: "约80-100间", distance: 2.4 },
+            { name: "格林豪泰酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 2.5 },
+            { name: "7天优品酒店 (西安高新区丈八东路店)", address: "丈八东路与锦业路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 2.6 },
+            { name: "速8酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 2.7 },
+            { name: "莫泰酒店 (西安高新区科技路店)", address: "科技路与锦业路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 2.8 },
+            { name: "尚客优酒店 (西安高新区丈八东路店)", address: "丈八东路与科技路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 2.9 },
+            { name: "如家快捷酒店 (西安高新区科技路店)", address: "科技路与丈八东路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 3.0 },
+            { name: "布丁酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 3.1 },
+            { name: "海友酒店 (西安高新区锦业三路店)", address: "锦业三路与科技路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 3.2 },
+            { name: "派酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 3.3 },
+            { name: "城市便捷酒店 (西安高新区锦业三路店)", address: "锦业三路与科技路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 3.4 },
+            { name: "麗枫酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 3.5 },
+            { name: "宜必思酒店 (西安高新区锦业三路店)", address: "锦业三路与科技路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 3.6 },
+            { name: "OYO酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 3.7 },
+            { name: "维也纳国际酒店 (西安高新区锦业三路店)", address: "锦业三路与科技路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 3.8 },
+            { name: "7天连锁酒店 (西安高新区锦业三路店)", address: "锦业三路与丈八东路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 3.9 },
+            { name: "如家精选酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 4.0 },
+            { name: "格林豪泰快捷酒店 (西安高新区锦业四路店)", address: "锦业四路与丈八东路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 4.1 },
+            { name: "汉庭酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 4.2 },
+            { name: "速8酒店 (西安高新区锦业四路店)", address: "锦业四路与丈八东路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 4.3 },
+            { name: "莫泰酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 4.4 },
+            { name: "尚客优酒店 (西安高新区锦业四路店)", address: "锦业四路与丈八东路交叉口", phone: "+86 400-666-3333", rooms: "约60-80间", distance: 4.5 },
+            { name: "如家快捷酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-8812-3456", rooms: "约70-90间", distance: 4.6 },
+            { name: "布丁酒店 (西安高新区锦业四路店)", address: "锦业四路与丈八东路交叉口", phone: "+86 400-666-5511", rooms: "约50-70间", distance: 4.7 },
+            { name: "海友酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-8832-9988", rooms: "约50-70间", distance: 4.8 },
+            { name: "派酒店 (西安高新区锦业四路店)", address: "锦业四路与丈八东路交叉口", phone: "+86 29-8885-1234", rooms: "约60-80间", distance: 4.9 },
+            { name: "城市便捷酒店 (西安高新区锦业四路店)", address: "锦业四路与科技路交叉口", phone: "+86 29-8819-5678", rooms: "约70-90间", distance: 5.0 },
+            { name: "麗枫酒店 (西安高新区科技二路店)", address: "科技二路与丈八东路交叉口", phone: "+86 29-8885-7788", rooms: "约80-100间", distance: 4.1 },
+            { name: "宜必思酒店 (西安高新区科技二路店)", address: "科技二路与锦业路交叉口", phone: "+86 29-8885-1111", rooms: "约100-120间", distance: 4.2 },
+            { name: "OYO酒店 (西安高新区科技二路店)", address: "科技二路与丈八东路交叉口", phone: "+86 29-8885-2233", rooms: "约40-60间", distance: 4.3 },
+            { name: "维也纳国际酒店 (西安高新区科技二路店)", address: "科技二路与锦业路交叉口", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 4.4 },
+            { name: "7天连锁酒店 (西安高新区科技二路店)", address: "科技二路与丈八东路交叉口", phone: "+86 400-820-9999", rooms: "约60-80间", distance: 4.5 },
+            { name: "如家精选酒店 (西安高新区科技二路店)", address: "科技二路与锦业路交叉口", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 4.6 },
+            { name: "格林豪泰快捷酒店 (西安高新区科技二路店)", address: "科技二路与丈八东路交叉口", phone: "+86 29-8899-6666", rooms: "约80-100间", distance: 4.7 },
+            { name: "汉庭酒店 (西安高新区科技二路店)", address: "科技二路与锦业路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 4.8 },
+            { name: "速8酒店 (西安高新区科技二路店)", address: "科技二路与丈八东路交叉口", phone: "+86 29-8888-0088", rooms: "约50-70间", distance: 4.9 },
+            { name: "莫泰酒店 (西安高新区科技二路店)", address: "科技二路与锦业路交叉口", phone: "+86 29-8818-5566", rooms: "约80-100间", distance: 5.0 },
+            { name: "西安高新快捷旅馆", address: "锦业路68号", phone: "+86 29-8885-0001", rooms: "约20-30间", distance: 1.5 },
+            { name: "锦业路宾馆", address: "锦业路与丈八一路交叉口附近", phone: "+86 29-8885-0002", rooms: "约15-25间", distance: 0.8 },
+            { name: "丈八东路招待所", address: "丈八东路12号", phone: "+86 29-8885-0003", rooms: "约10-20间", distance: 2.0 },
+            { name: "科技路家庭旅馆", address: "科技路与锦业路交叉口附近", phone: "+86 29-8885-0004", rooms: "约10-15间", distance: 2.5 },
+            { name: "高新区快捷酒店", address: "丈八四路与锦业路交叉口", phone: "+86 29-8885-0005", rooms: "约20-30间", distance: 1.8 },
+            { name: "西安锦程宾馆", address: "锦业二路88号", phone: "+86 29-8885-0006", rooms: "约25-35间", distance: 2.2 },
+            { name: "丈八北路旅店", address: "丈八北路与科技路交叉口附近", phone: "+86 29-8885-0007", rooms: "约15-25间", distance: 3.5 },
+            { name: "高新商务旅馆", address: "锦业路与丈八六路交叉口", phone: "+86 29-8885-0008", rooms: "约20-30间", distance: 2.8 },
+            { name: "西安阳光旅社", address: "科技路与丈八东路交叉口附近", phone: "+86 29-8885-0009", rooms: "约10-20间", distance: 3.0 },
+            { name: "锦业快捷宾馆", address: "锦业路与丈八四路交叉口附近", phone: "+86 29-8885-0010", rooms: "约15-25间", distance: 1.9 },
+            { name: "西安绿地宾馆", address: "锦业路与丈八东路交叉口附近", phone: "+86 29-8885-0011", rooms: "约30-40间", distance: 2.4 },
+            { name: "高新区家庭旅店", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0012", rooms: "约10-20间", distance: 4.0 },
+            { name: "丈八快捷旅馆", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0013", rooms: "约15-25间", distance: 2.6 },
+            { name: "西安科技宾馆", address: "科技路与丈八四路交叉口", phone: "+86 29-8885-0014", rooms: "约20-30间", distance: 3.2 },
+            { name: "锦业路招待所", address: "锦业路与丈八六路交叉口附近", phone: "+86 29-8885-0015", rooms: "约10-20间", distance: 2.9 },
+            { name: "高新区青年旅社", address: "锦业二路与科技路交叉口附近", phone: "+86 29-8885-0016", rooms: "约15-25间", distance: 2.7 },
+            { name: "西安锦绣宾馆", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0017", rooms: "约20-30间", distance: 3.8 },
+            { name: "科技路快捷旅馆", address: "科技路与丈八六路交叉口附近", phone: "+86 29-8885-0018", rooms: "约15-25间", distance: 4.2 },
+            { name: "丈八东路宾馆", address: "丈八东路与科技路交叉口附近", phone: "+86 29-8885-0019", rooms: "约20-30间", distance: 3.4 },
+            { name: "西安高新旅店", address: "锦业路与丈八四路交叉口附近", phone: "+86 29-8885-0020", rooms: "约15-25间", distance: 2.3 },
+            { name: "锦业商务酒店", address: "锦业路与丈八东路交叉口附近", phone: "+86 29-8885-0021", rooms: "约30-40间", distance: 2.5 },
+            { name: "西安快捷宾馆 (科技路店)", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0022", rooms: "约20-30间", distance: 3.6 },
+            { name: "丈八北路快捷酒店", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0023", rooms: "约15-25间", distance: 4.1 },
+            { name: "高新区阳光宾馆", address: "锦业二路与科技路交叉口附近", phone: "+86 29-8885-0024", rooms: "约20-30间", distance: 2.8 },
+            { name: "西安锦程快捷酒店", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0025", rooms: "约25-35间", distance: 2.9 },
+            { name: "科技路招待所", address: "科技路与丈八四路交叉口附近", phone: "+86 29-8885-0026", rooms: "约10-20间", distance: 3.3 },
+            { name: "丈八东路家庭旅馆", address: "丈八东路与科技路交叉口附近", phone: "+86 29-8885-0027", rooms: "约10-15间", distance: 3.5 },
+            { name: "高新区锦绣旅社", address: "锦业路与丈八六路交叉口附近", phone: "+86 29-8885-0028", rooms: "约15-25间", distance: 3.0 },
+            { name: "西安绿地快捷旅馆", address: "锦业二路与丈八东路交叉口附近", phone: "+86 29-8885-0029", rooms: "约20-30间", distance: 2.6 },
+            { name: "锦业路青年旅店", address: "锦业路与科技路交叉口附近", phone: "+86 29-8885-0030", rooms: "约15-25间", distance: 2.4 },
+            { name: "西安高新宾馆 (丈八店)", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0031", rooms: "约20-30间", distance: 3.7 },
+            { name: "科技路商务旅馆", address: "科技路与丈八东路交叉口附近", phone: "+86 29-8885-0032", rooms: "约15-25间", distance: 3.9 },
+            { name: "丈八北路招待所", address: "丈八北路与科技路交叉口附近", phone: "+86 29-8885-0033", rooms: "约10-20间", distance: 4.3 },
+            { name: "高新区快捷旅店", address: "锦业三路与丈八东路交叉口附近", phone: "+86 29-8885-0034", rooms: "约20-30间", distance: 3.2 },
+            { name: "西安锦程宾馆 (科技路店)", address: "科技路与锦业路交叉口附近", phone: "+86 29-8885-0035", rooms: "约25-35间", distance: 3.4 },
+            { name: "丈八东路快捷宾馆", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0036", rooms: "约15-25间", distance: 2.7 },
+            { name: "高新区阳光旅馆", address: "锦业四路与科技路交叉口附近", phone: "+86 29-8885-0037", rooms: "约20-30间", distance: 4.0 },
+            { name: "西安绿地旅社", address: "锦业路与丈八四路交叉口附近", phone: "+86 29-8885-0038", rooms: "约15-25间", distance: 2.8 },
+            { name: "锦业路家庭旅店", address: "锦业路与科技路交叉口附近", phone: "+86 29-8885-0039", rooms: "约10-20间", distance: 2.9 },
+            { name: "西安高新快捷酒店 (锦业店)", address: "锦业二路与丈八东路交叉口附近", phone: "+86 29-8885-0040", rooms: "约20-30间", distance: 3.1 },
+            { name: "丈八北路宾馆", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0041", rooms: "约15-25间", distance: 4.2 },
+            { name: "科技路青年旅社", address: "科技路与丈八东路交叉口附近", phone: "+86 29-8885-0042", rooms: "约10-20间", distance: 3.5 },
+            { name: "高新区锦绣宾馆", address: "锦业三路与科技路交叉口附近", phone: "+86 29-8885-0043", rooms: "约20-30间", distance: 3.3 },
+            { name: "西安快捷旅馆 (丈八店)", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0044", rooms: "约15-25间", distance: 2.6 },
+            { name: "锦业路招待所 (科技店)", address: "锦业路与科技路交叉口附近", phone: "+86 29-8885-0045", rooms: "约10-20间", distance: 2.7 },
+            { name: "丈八东路旅店", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0046", rooms: "约15-25间", distance: 2.8 },
+            { name: "高新区快捷宾馆 (锦业四路)", address: "锦业四路与科技路交叉口附近", phone: "+86 29-8885-0047", rooms: "约20-30间", distance: 4.1 },
+            { name: "西安科技旅社", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0048", rooms: "约15-25间", distance: 4.3 },
+            { name: "锦业路商务旅馆", address: "锦业路与丈八东路交叉口附近", phone: "+86 29-8885-0049", rooms: "约20-30间", distance: 2.9 },
+            { name: "丈八北路快捷旅馆", address: "丈八北路与科技路交叉口附近", phone: "+86 29-8885-0050", rooms: "约15-25间", distance: 4.4 },
+            { name: "高新区绿地宾馆", address: "锦业二路与丈八东路交叉口附近", phone: "+86 29-8885-0051", rooms: "约20-30间", distance: 3.0 },
+            { name: "西安锦程旅店", address: "锦业路与科技路交叉口附近", phone: "+86 29-8885-0052", rooms: "约15-25间", distance: 2.5 },
+            { name: "科技路家庭旅馆", address: "科技路与丈八东路交叉口附近", phone: "+86 29-8885-0053", rooms: "约10-20间", distance: 3.6 },
+            { name: "丈八东路招待所", address: "丈八东路与锦业路交叉口附近", phone: "+86 29-8885-0054", rooms: "约15-25间", distance: 2.7 },
+            { name: "高新区快捷旅社", address: "锦业三路与科技路交叉口附近", phone: "+86 29-8885-0055", rooms: "约20-30间", distance: 3.2 },
+            { name: "西安阳光宾馆 (锦业店)", address: "锦业路与丈八四路交叉口附近", phone: "+86 29-8885-0056", rooms: "约15-25间", distance: 2.8 },
+            { name: "锦业路快捷酒店", address: "锦业路与科技路交叉口附近", phone: "+86 29-8885-0057", rooms: "约20-30间", distance: 2.9 },
+            { name: "丈八北路旅馆", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0058", rooms: "约15-25间", distance: 4.5 },
+            { name: "高新区锦程宾馆", address: "锦业二路与丈八东路交叉口附近", phone: "+86 29-8885-0059", rooms: "约20-30间", distance: 3.1 },
+            { name: "西安科技快捷旅馆", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0060", rooms: "约15-25间", distance: 4.6 }
+            ];
+
+        // 本地存储初始化
+        const savedData = JSON.parse(localStorage.getItem('hotelData')) || {};
+        let isCollapsed = true;
+
+        // 生成酒店列表
+        function generateHotelList(hotels) {
+            const hotelList = document.getElementById('hotelList');
+            hotelList.innerHTML = '';
+            hotels.forEach((hotel, index) => {
+                const saved = savedData[index] || { status: '待定', remarks: '', checked: false, collapsed: true, distance: hotel.distance };
+                const item = document.createElement('div');
+                item.className = `hotel-item${saved.collapsed ? ' collapsed' : ''}`;
+                item.innerHTML = `
+                    <div class="hotel-name" onclick="toggleHotel(${index}, event)">
+                        <div class="controls">
+                            <input type="checkbox" ${saved.checked ? 'checked' : ''} onchange="updateChecked(${index}, this.checked)">
+                            <select onchange="updateStatus(${index}, this.value)">
+                                ${['待定','跟进','合作','放弃'].map(v => 
+                                    `<option ${saved.status === v ? 'selected' : ''}>${v}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="content">${hotel.name}</div>
+                        <span class="distance" onclick="openMap('${hotel.name}', '${hotel.address}', event)">
+                            ${(saved.distance || hotel.distance).toFixed(1)}公里
+                        </span>
+                    </div>
+                    <div class="details">
+                        <p>地址：${hotel.address}</p>
+                        <p>电话：${hotel.phone}</p>
+                        <p>房间：${hotel.rooms}</p>
+                        <div class="distance-edit">
+                            <span class="remarks-label">备注：</span>
+                            <textarea class="remarks" onchange="updateRemarks(${index}, this.value)">${saved.remarks || ''}</textarea>
+                            <div>
+                                <input type="number" class="distance-input" step="0.1" 
+                                    value="${(saved.distance || hotel.distance).toFixed(1)}"
+                                    onchange="updateDistance(${index}, this.value)">
+                                <button class="save-btn" onclick="saveAll(${index}, event)">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                hotelList.appendChild(item);
+            });
+        }
+
+        // 数据更新函数
+        function updateStatus(index, status) {
+            savedData[index] = {...savedData[index], status};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateChecked(index, checked) {
+            savedData[index] = {...savedData[index], checked};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateRemarks(index, remarks) {
+            savedData[index] = {...savedData[index], remarks};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateDistance(index, value) {
+            const distance = parseFloat(value);
+            savedData[index] = {...savedData[index], distance};
+            fullHotels[index].distance = distance;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+            document.querySelectorAll('.distance')[index].textContent = `${distance.toFixed(1)}公里`;
+        }
+
+        // 其他功能函数
+        function toggleDetails() {
+            isCollapsed = !isCollapsed;
+            fullHotels.forEach((_, i) => savedData[i] = {...savedData[i], collapsed: isCollapsed});
+            generateHotelList(fullHotels);
+            document.getElementById('toggleBtn').textContent = isCollapsed ? '展开' : '折叠';
+            document.getElementById('toggleBtn').className = isCollapsed ? '' : 'expanded';
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function toggleHotel(index, event) {
+            if (!event.target.closest('.controls')) {
+                savedData[index].collapsed = !savedData[index].collapsed;
+                generateHotelList(fullHotels);
+                localStorage.setItem('hotelData', JSON.stringify(savedData));
+            }
+        }
+
+        function searchHotels() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('searchStatus').value;
+            const distanceFilters = Array.from(document.querySelectorAll('input[name="distance"]:checked')).map(c => c.value);
+            
+            const results = fullHotels.filter((hotel, index) => {
+                const matchesName = hotel.name.toLowerCase().includes(searchText);
+                const matchesStatus = !statusFilter || (savedData[index]?.status === statusFilter);
+                const actualDistance = savedData[index]?.distance ?? hotel.distance;
+                
+                const matchesDistance = distanceFilters.some(range => {
+                    if (range === 'all') return true;
+                    const [min, max] = range.split(/[+|-]/).map(Number);
+                    return range.endsWith('+') ? actualDistance > min : 
+                           range.includes('-') ? actualDistance > min && actualDistance <= max :
+                           actualDistance <= min;
+                });
+                
+                return matchesName && matchesStatus && matchesDistance;
+            }).sort((a, b) => (savedData[fullHotels.indexOf(a)]?.distance ?? a.distance) - 
+                            (savedData[fullHotels.indexOf(b)]?.distance ?? b.distance));
+
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('hotelList').style.display = 'block';
+            generateHotelList(results);
+        }
+
+        function showRandomHotels() {
+            const unchecked = fullHotels.filter((_, i) => !savedData[i]?.checked);
+            if (unchecked.length === 0) return alert('所有酒店已勾选');
+            const random = Array.from({length: Math.min(3, unchecked.length)}, () => 
+                unchecked.splice(Math.floor(Math.random() * unchecked.length), 1)[0]
+            ).sort((a, b) => a.distance - b.distance);
+            
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('hotelList').style.display = 'block';
+            generateHotelList(random);
+        }
+
+        function openMap(name, address) {
+            window.open(`https://uri.amap.com/search?query=${encodeURIComponent(name)}&city=西安&addr=${encodeURIComponent(address)}`);
+        }
+
+        function openLifeMuseum() {
+            window.open('http://www.thisnet.cn/wxurl/mini.php');
+        }
+
+        function showHome() {
+            document.getElementById('homePage').style.display = 'block';
+            document.getElementById('hotelList').style.display = 'none';
+        }
+
+        // 初始化
+        generateHotelList([]);
+    </script>
+</body>
+</html>
