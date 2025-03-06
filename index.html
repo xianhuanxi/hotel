@@ -17,7 +17,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            padding-bottom: 80px; /* 给底部按钮留空间 */
+            padding-bottom: 80px;
         }
         .home {
             text-align: center;
@@ -25,39 +25,48 @@
         }
         .home h1 {
             margin-bottom: 20px;
+            color: #333;
         }
         #searchInput, #searchStatus {
             padding: 10px;
             margin: 10px 0;
             width: 80%;
             max-width: 300px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
         }
         .distance-options {
             margin: 10px 0;
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 8px 0;
+            gap: 8px;
             max-width: 500px;
             margin: 10px auto;
         }
         .distance-options label {
-            flex: 0 0 32%;
+            flex: 0 0 48%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 0;
-            font-size: 14px;
+            cursor: pointer;
         }
-        #searchBtn, #randomBtn {
+        .button-style {
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
             margin: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s;
         }
-        #searchBtn:hover, #randomBtn:hover {
+        .button-style:hover {
             background-color: #45a049;
         }
         .header {
@@ -69,21 +78,7 @@
             z-index: 1000;
             display: flex;
             align-items: center;
-        }
-        .header h1 {
-            margin: 0 10px 0 0;
-            display: inline;
-        }
-        #toggleBtn {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #808080;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        #toggleBtn.expanded {
-            background-color: #4CAF50;
+            justify-content: space-between;
         }
         .hotel-list {
             display: none;
@@ -91,9 +86,10 @@
         .hotel-item {
             border: 1px solid #ddd;
             margin: 10px 0;
-            padding: 10px;
+            padding: 15px;
             background-color: #fff;
             border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .hotel-item.collapsed .details {
             display: none;
@@ -102,62 +98,40 @@
             font-weight: bold;
             margin-bottom: 5px;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
+            cursor: pointer;
         }
         .hotel-name .controls {
             margin-right: 15px;
             display: flex;
-            flex-direction: column;
+            gap: 5px;
         }
-        .hotel-name input[type="checkbox"] {
-            margin-bottom: 5px;
-            cursor: pointer;
+        .detail-item {
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
         }
-        .hotel-name select {
-            margin-bottom: 5px;
-            padding: 2px;
+        .detail-item label {
+            min-width: 60px;
         }
-        .hotel-name .content {
-            flex-grow: 1;
-            cursor: pointer;
+        .detail-item input, 
+        .detail-item textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .detail-item textarea {
+            height: 60px;
+            resize: vertical;
         }
         .distance {
             color: #0066cc;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .details {
-            margin-left: 20px;
-            margin-top: 5px;
-        }
-        .distance-edit {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .remarks-label {
-            display: inline-block;
-            vertical-align: top;
-            margin-right: 5px;
-        }
-        .remarks {
-            width: 100%;
-            resize: vertical;
-            min-height: 40px;
-            margin-bottom: 10px;
-        }
-        .distance-input {
-            width: 80px;
-            padding: 5px;
-        }
-        .save-btn {
-            padding: 10px 15px;
-            font-size: 14px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         .footer-buttons {
             position: fixed;
@@ -169,15 +143,6 @@
             border-top: 1px solid #ddd;
             text-align: center;
             z-index: 1000;
-        }
-        .back-btn, .life-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin: 0 10px;
         }
         .save-notice {
             position: fixed;
@@ -193,30 +158,17 @@
         }
         @media (max-width: 768px) {
             .distance-options label {
-                flex: 0 0 48%;
-                font-size: 12px;
+                flex: 0 0 100%;
             }
-            .header {
-                padding: 5px;
+            .detail-item {
+                flex-direction: column;
+                align-items: flex-start;
             }
-            #searchInput, #searchStatus {
-                width: 90%;
-            }
-            .hotel-item {
-                padding: 8px;
-            }
-            .distance {
-                font-size: 14px;
-            }
-            .back-btn, .life-btn {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
-            .footer-buttons {
-                padding: 10px;
-            }
-            .distance-input {
-                width: 60px;
+            .detail-item input, 
+            .detail-item textarea {
+                margin-left: 0;
+                width: 100%;
+                margin-top: 5px;
             }
         }
     </style>
@@ -226,6 +178,13 @@
         <div class="home" id="homePage">
             <h1>丈八一路酒店信息</h1>
             <input type="text" id="searchInput" placeholder="按酒店名称搜索...">
+            <select id="searchStatus">
+                <option value="">所有状态</option>
+                <option value="待定">待定</option>
+                <option value="跟进">跟进</option>
+                <option value="合作">合作</option>
+                <option value="放弃">放弃</option>
+            </select>
             <div class="distance-options">
                 <label><input type="checkbox" name="distance" value="all" checked> 全部</label>
                 <label><input type="checkbox" name="distance" value="0-1"> 1km内</label>
@@ -234,37 +193,30 @@
                 <label><input type="checkbox" name="distance" value="3-4"> 3-4km</label>
                 <label><input type="checkbox" name="distance" value="4+"> 4km+</label>
             </div>
-            <select id="searchStatus">
-                <option value="">所有状态</option>
-                <option value="待定">待定</option>
-                <option value="跟进">跟进</option>
-                <option value="合作">合作</option>
-                <option value="放弃">放弃</option>
-            </select>
-            <button id="searchBtn" onclick="searchHotels()">搜索</button>
-            <button id="randomBtn" onclick="showRandomHotels()">随机3条未勾选</button>
+            <button class="button-style" onclick="searchHotels()">搜索酒店</button>
+            <button class="button-style" onclick="showRandomHotels()">随机推荐</button>
         </div>
         <div class="header">
             <h1>酒店详情</h1>
-            <button id="toggleBtn" onclick="toggleDetails()">展开</button>
+            <button class="button-style" id="toggleBtn" onclick="toggleDetails()">展开</button>
         </div>
         <div class="hotel-list" id="hotelList"></div>
     </div>
     
     <div class="footer-buttons">
-        <button class="back-btn" onclick="showHome()">回到首页</button>
-        <button class="life-btn" onclick="openLifeMuseum()">欢喜生活馆</button>
+        <button class="button-style" onclick="showHome()">回到首页</button>
+        <button class="button-style" onclick="openLifeMuseum()">欢喜生活馆</button>
     </div>
     
     <div class="save-notice" id="saveNotice">✓ 保存成功！</div>
 
     <script>
-        // 示例数据（需要补充完整）
+        // 完整酒店数据
         const fullHotels = [
-            { name: "西安绿地假日酒店", address: "西安市雁塔区锦业路5号", phone: "029-68689999", rooms: "约200间", distance: 0.2 },
-            { name: "桔子酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口东北角", phone: "+86 29-6825-9777", rooms: "约80-100间", distance: 0.3 },
-            { name: "如家精选酒店 (西安高新区锦业一路丈八四路地铁站店)", address: "锦业一路56号", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 0.4 },
-            { name: "全住酒店 (西安高新区锦业路店)", address: "锦业路附近", phone: "+86 29-8866-1234", rooms: "约60-80间", distance: 0.5 },
+           
+            { name: "桔子酒店 (西安高新区锦业路店)", address: "丈八一路与锦业路交叉口东北角旺都大厦C座5楼", phone: "+86 29-6825-9777", rooms: "约80-100间", distance: 0.4 },
+            { name: "如家精选酒店 (西安高新区锦业一路丈八四路地铁站店)", address: "锦业一路56号", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 1.4 },
+            { name: "全住酒店(半导体产业园丈八六路地铁口店)", address: "锦业路附近", phone: "+86 29-8866-1234", rooms: "约60-80间", distance: 0.5 },
             { name: "橙子酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路东北角王都大厦C座", phone: "+86 400-838-1515", rooms: "约70-90间", distance: 0.6 },
             { name: "维也纳酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口附近", phone: "+86 29-8885-5333", rooms: "约100-130间", distance: 0.7 },
             { name: "汉庭酒店 (西安高新区锦业路店)", address: "锦业路与丈八一路交叉口", phone: "+86 29-8832-5678", rooms: "约80-100间", distance: 0.8 },
@@ -476,11 +428,14 @@
             hotels.forEach((hotel, listIndex) => {
                 const originalIndex = fullHotels.indexOf(hotel);
                 const saved = savedData[originalIndex] || { 
-                    status: '待定', 
-                    remarks: '', 
-                    checked: false, 
+                    status: '待定',
+                    remarks: '',
+                    checked: false,
                     collapsed: true,
-                    distance: hotel.distance
+                    distance: hotel.distance,
+                    address: hotel.address,
+                    phone: hotel.phone,
+                    rooms: hotel.rooms
                 };
 
                 const item = document.createElement('div');
@@ -488,32 +443,46 @@
                 item.innerHTML = `
                     <div class="hotel-name" onclick="toggleHotel(${originalIndex}, event)">
                         <div class="controls">
-                            <input type="checkbox" ${saved.checked ? 'checked' : ''} onchange="updateChecked(${originalIndex}, this.checked)">
-                            <select onchange="updateStatus(${originalIndex}, this.value)">
+                            <input type="checkbox" ${saved.checked ? 'checked' : ''} 
+                                   onchange="updateChecked(${originalIndex}, this.checked)">
+                            <select onchange="updateStatus(${originalIndex}, this.value)"
+                                    style="padding: 4px; border-radius: 4px">
                                 ${['待定','跟进','合作','放弃'].map(v => 
                                     `<option ${saved.status === v ? 'selected' : ''}>${v}</option>`
                                 ).join('')}
                             </select>
                         </div>
-                        <div class="content">${hotel.name}</div>
+                        <div>${hotel.name}</div>
                         <span class="distance" onclick="openMap('${hotel.name}', event)">
                             ${(saved.distance || hotel.distance).toFixed(1)}公里
                         </span>
                     </div>
                     <div class="details">
-                        <p>地址：${hotel.address}</p>
-                        <p>电话：${hotel.phone}</p>
-                        <p>房间：${hotel.rooms}</p>
-                        <div class="distance-edit">
-                            <span class="remarks-label">备注：</span>
-                            <textarea class="remarks" onchange="updateRemarks(${originalIndex}, this.value)">${saved.remarks || ''}</textarea>
-                            <div style="display: flex; gap: 10px; align-items: center">
-                            <span class="remarks-label">修改距离：</span>
-                                <input type="number" class="distance-input" step="0.1" 
-                                    value="${(saved.distance || hotel.distance).toFixed(1)}"
-                                    onchange="updateDistance(${originalIndex}, this.value)">
-                                <button class="save-btn" onclick="showSaveNotice()">保存修改</button>
-                            </div>
+                        <div class="detail-item">
+                            <label>地址：</label>
+                            <input value="${saved.address || hotel.address}" 
+                                   onchange="updateAddress(${originalIndex}, this.value)">
+                        </div>
+                        <div class="detail-item">
+                            <label>电话：</label>
+                            <input value="${saved.phone || hotel.phone}" 
+                                   onchange="updatePhone(${originalIndex}, this.value)">
+                        </div>
+                        <div class="detail-item">
+                            <label>房间：</label>
+                            <input value="${saved.rooms || hotel.rooms}" 
+                                   onchange="updateRooms(${originalIndex}, this.value)">
+                        </div>
+                        <div class="detail-item">
+                            <label>备注：</label>
+                            <textarea onchange="updateRemarks(${originalIndex}, this.value)">${saved.remarks || ''}</textarea>
+                        </div>
+                        <div class="detail-item">
+                            <label>修改距离：</label>
+                            <input type="number" step="0.1" 
+                                   value="${(saved.distance || hotel.distance).toFixed(1)}"
+                                   onchange="updateDistance(${originalIndex}, this.value)">
+                            <button class="button-style" onclick="showSaveNotice()">保存修改</button>
                         </div>
                     </div>
                 `;
@@ -524,9 +493,7 @@
         function showSaveNotice() {
             const notice = document.getElementById('saveNotice');
             notice.style.display = 'block';
-            setTimeout(() => {
-                notice.style.display = 'none';
-            }, 1000);
+            setTimeout(() => notice.style.display = 'none', 1000);
         }
 
         function updateStatus(index, status) {
@@ -544,12 +511,26 @@
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
 
+        function updateAddress(index, value) {
+            savedData[index] = {...savedData[index], address: value};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updatePhone(index, value) {
+            savedData[index] = {...savedData[index], phone: value};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateRooms(index, value) {
+            savedData[index] = {...savedData[index], rooms: value};
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
         function updateDistance(index, value) {
             const distance = parseFloat(value);
             savedData[index] = {...savedData[index], distance};
             fullHotels[index].distance = distance;
             localStorage.setItem('hotelData', JSON.stringify(savedData));
-            document.querySelectorAll('.distance')[currentDisplayedIndexes.indexOf(index)].textContent = `${distance.toFixed(1)}公里`;
         }
 
         function toggleDetails() {
@@ -559,19 +540,12 @@
             });
             generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
             document.getElementById('toggleBtn').textContent = isCollapsed ? '展开' : '折叠';
-            document.getElementById('toggleBtn').className = isCollapsed ? '' : 'expanded';
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
 
         function toggleHotel(index, event) {
-            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.closest('.controls')) {
-                return;
-            }
-            if (!savedData[index]) {
-                savedData[index] = { collapsed: false };
-            } else {
-                savedData[index].collapsed = !savedData[index].collapsed;
-            }
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') return;
+            savedData[index] = {...savedData[index], collapsed: !savedData[index]?.collapsed};
             generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
