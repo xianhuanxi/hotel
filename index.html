@@ -507,6 +507,7 @@
                             <span class="remarks-label">备注：</span>
                             <textarea class="remarks" onchange="updateRemarks(${originalIndex}, this.value)">${saved.remarks || ''}</textarea>
                             <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="remarks-label">修改距离：</span>
                                 <input type="number" class="distance-input" step="0.1" 
                                     value="${(saved.distance || hotel.distance).toFixed(1)}"
                                     onchange="updateDistance(${originalIndex}, this.value)">
