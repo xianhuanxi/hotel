@@ -17,6 +17,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            padding-bottom: 80px; /* 给底部按钮留空间 */
         }
         .home {
             text-align: center;
@@ -131,7 +132,7 @@
         }
         .distance-edit {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
             gap: 10px;
             margin-top: 10px;
         }
@@ -141,16 +142,18 @@
             margin-right: 5px;
         }
         .remarks {
-            width: 60%;
+            width: 100%;
             resize: vertical;
             min-height: 40px;
+            margin-bottom: 10px;
         }
         .distance-input {
             width: 80px;
             padding: 5px;
         }
         .save-btn {
-            padding: 5px 10px;
+            padding: 10px 15px;
+            font-size: 14px;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -162,18 +165,31 @@
             left: 0;
             width: 100%;
             background-color: #fff;
-            padding: 10px;
+            padding: 15px;
             border-top: 1px solid #ddd;
             text-align: center;
             z-index: 1000;
         }
         .back-btn, .life-btn {
-            padding: 8px 15px;
+            padding: 10px 20px;
+            font-size: 16px;
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
-            margin-right: 10px;
+            margin: 0 10px;
+        }
+        .save-notice {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         @media (max-width: 768px) {
             .distance-options label {
@@ -193,25 +209,14 @@
                 font-size: 14px;
             }
             .back-btn, .life-btn {
-                padding: 6px 12px;
-                font-size: 12px;
+                padding: 8px 16px;
+                font-size: 14px;
             }
             .footer-buttons {
-                padding: 5px;
-            }
-            .remarks {
-                width: 50%;
+                padding: 10px;
             }
             .distance-input {
                 width: 60px;
-            }
-            .save-btn {
-                padding: 4px 8px;
-                font-size: 12px;
-            }
-            #toggleBtn {
-                padding: 8px 12px;
-                font-size: 14px;
             }
         }
     </style>
@@ -245,10 +250,13 @@
         </div>
         <div class="hotel-list" id="hotelList"></div>
     </div>
+    
     <div class="footer-buttons">
         <button class="back-btn" onclick="showHome()">回到首页</button>
         <button class="life-btn" onclick="openLifeMuseum()">欢喜生活馆</button>
     </div>
+    
+    <div class="save-notice" id="saveNotice">✓ 保存成功！</div>
 
     <script>
         // 示例数据（需要补充完整）
@@ -453,7 +461,6 @@
             { name: "丈八北路旅馆", address: "丈八北路与锦业路交叉口附近", phone: "+86 29-8885-0058", rooms: "约15-25间", distance: 4.5 },
             { name: "高新区锦程宾馆", address: "锦业二路与丈八东路交叉口附近", phone: "+86 29-8885-0059", rooms: "约20-30间", distance: 3.1 },
             { name: "西安科技快捷旅馆", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0060", rooms: "约15-25间", distance: 4.6 }
-            // 在此添加更多酒店数据...
         ];
 
         const savedData = JSON.parse(localStorage.getItem('hotelData')) || {};
@@ -488,7 +495,7 @@
                             </select>
                         </div>
                         <div class="content">${hotel.name}</div>
-                        <span class="distance" onclick="openMap('${hotel.name}', '${hotel.address}', event)">
+                        <span class="distance" onclick="openMap('${hotel.name}', event)">
                             ${(saved.distance || hotel.distance).toFixed(1)}公里
                         </span>
                     </div>
@@ -499,17 +506,25 @@
                         <div class="distance-edit">
                             <span class="remarks-label">备注：</span>
                             <textarea class="remarks" onchange="updateRemarks(${originalIndex}, this.value)">${saved.remarks || ''}</textarea>
-                            <div>
+                            <div style="display: flex; gap: 10px; align-items: center">
                                 <input type="number" class="distance-input" step="0.1" 
                                     value="${(saved.distance || hotel.distance).toFixed(1)}"
                                     onchange="updateDistance(${originalIndex}, this.value)">
-                                <button class="save-btn" onclick="saveAll(${originalIndex}, event)">保存</button>
+                                <button class="save-btn" onclick="showSaveNotice()">保存修改</button>
                             </div>
                         </div>
                     </div>
                 `;
                 hotelList.appendChild(item);
             });
+        }
+
+        function showSaveNotice() {
+            const notice = document.getElementById('saveNotice');
+            notice.style.display = 'block';
+            setTimeout(() => {
+                notice.style.display = 'none';
+            }, 1000);
         }
 
         function updateStatus(index, status) {
@@ -533,16 +548,6 @@
             fullHotels[index].distance = distance;
             localStorage.setItem('hotelData', JSON.stringify(savedData));
             document.querySelectorAll('.distance')[currentDisplayedIndexes.indexOf(index)].textContent = `${distance.toFixed(1)}公里`;
-        }
-
-        function saveAll(index, event) {
-            event.stopPropagation();
-            const remarks = document.getElementById(`remarks-${index}`).value;
-            const distance = document.getElementById(`distance-${index}`).value;
-            
-            savedData[index] = {...savedData[index], remarks, distance: parseFloat(distance)};
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-            alert('已保存修改！');
         }
 
         function toggleDetails() {
@@ -608,8 +613,8 @@
             generateHotelList(random);
         }
 
-        function openMap(name, address) {
-            window.open(`https://uri.amap.com/search?query=${encodeURIComponent(name)}&city=西安&addr=${encodeURIComponent(address)}`);
+        function openMap(name) {
+            window.open(`https://uri.amap.com/search?query=${encodeURIComponent(name)}&city=西安`);
         }
 
         function openLifeMuseum() {
