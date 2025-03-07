@@ -196,30 +196,106 @@
             searchHotels();
         }
 
-        function exportData(){
-            const data={fullHotels:fullHotels,savedData:savedData,version:new Date().toISOString()};
-            const content = JSON.stringify(data);
-            const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
-            const url=URL.createObjectURL(blob);
-            const a=document.createElement('a');
-            a.href=url;
-            a.download=`酒店数据_${new Date().toLocaleDateString()}.json`;
-            a.click();
-             if (/MicroMessenger/i.test(navigator.userAgent)) {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
-    document.body.appendChild(iframe);
-    setTimeout(() => document.body.removeChild(iframe), 1000);
-  } else {
-    // 正常浏览器处理
-    const blob = new Blob([content], {type: 'application/json'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `酒店数据_${new Date().toLocaleDateString()}.json`;
-    link.click();
+function exportData() {
+    try {
+        // 准备数据
+        const data = {
+            fullHotels: fullHotels,
+            savedData: savedData,
+            version: new Date().toISOString()
+        };
+        const content = JSON.stringify(data, null, 2);
+        const filename = `酒店数据_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+
+        // 微信环境特殊处理
+        if (/MicroMessenger/i.test(navigator.userAgent)) {
+            // 创建下载引导界面
+            const exportGuide = document.createElement('div');
+            exportGuide.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                z-index: 9999;
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 20px;
+            `;
+
+            // 引导内容
+            exportGuide.innerHTML = `
+                <h3 style="margin-bottom:20px">📁 导出操作指引</h3>
+                <p>1. 点击右上角 ··· 按钮</p>
+                <p>2. 选择「在浏览器打开」</p>
+                <p>3. 重新点击导出按钮</p>
+                <div style="margin:30px 0;border-top:1px solid #666;width:80%"></div>
+                <p>或扫描二维码在电脑端操作：</p>
+                <img id="exportQrcode" style="width:200px;height:200px;margin:15px">
+                <button onclick="this.parentElement.remove()" 
+                    style="padding:8px 20px;background:#4a90e2;border:none;color:white;border-radius:5px;margin-top:15px">
+                    关闭提示
+                </button>
+            `;
+
+            // 生成二维码
+            const pageUrl = encodeURIComponent(window.location.href);
+            exportGuide.querySelector('#exportQrcode').src = 
+                `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${pageUrl}`;
+
+            document.body.appendChild(exportGuide);
+            return;
         }
 
+        // 正常浏览器处理
+        if (window.Blob && window.URL) {
+            // 现代浏览器方案
+            const blob = new Blob([content], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理资源
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 100);
+        } else {
+            // 兼容旧浏览器的备用方案
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
+            document.body.appendChild(iframe);
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+        }
+
+        // 显示成功提示
+        showSaveNotice('数据导出已触发，请查看下载文件');
+
+    } catch (error) {
+        console.error('导出失败:', error);
+        showSaveNotice(`导出失败: ${error.message || '未知错误'}`);
+    }
+}
+
+// 显示保存提示的函数需要保持与之前一致
+function showSaveNotice(message) {
+    const notice = document.getElementById('saveNotice');
+    notice.textContent = message;
+    notice.style.display = 'block';
+    setTimeout(() => notice.style.display = 'none', 3000);
+}
         function importData(event){
             const file=event.target.files[0];
             if(!file)return;
