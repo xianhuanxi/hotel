@@ -6,132 +6,173 @@
     <title>丈八一路酒店信息管理</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Helvetica Neue", system-ui, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #f8f9fb;
             min-height: 100vh;
             position: relative;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            padding-bottom: 80px;
+            padding: 24px;
+            padding-bottom: 140px;
         }
         .home {
             text-align: center;
-            padding: 20px;
+            padding: 24px;
         }
         .home h1 {
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 28px;
+            color: #1a1d1f;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         #searchInput, #searchStatus {
-            padding: 10px;
-            margin: 10px 0;
-            width: 80%;
-            max-width: 300px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+            padding: 14px 16px;
+            margin: 12px 0;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 10px;
+            border: 2px solid #e2e4e8;
             box-sizing: border-box;
+            font-size: 16px;
+            height: 52px;
+            transition: border-color 0.2s;
+        }
+        #searchInput:focus, #searchStatus:focus {
+            border-color: #4a90e2;
+            outline: none;
         }
         .distance-options {
-            margin: 10px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-width: 500px;
-            margin: 10px auto;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            max-width: 560px;
         }
         .distance-options label {
-            flex: 0 0 48%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 14px;
+            border: 2px solid #e2e4e8;
+            border-radius: 10px;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-size: 15px;
+            color: #454950;
+            transition: all 0.2s;
+        }
+        .distance-options label:hover {
+            border-color: #4a90e2;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            max-width: 560px;
+            margin: 24px auto;
         }
         .button-style {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            padding: 16px 36px;
+            background-color: #4a90e2;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
-            margin: 5px;
-            font-size: 14px;
-            transition: background-color 0.3s;
+            font-size: 16px;
+            transition: all 0.2s;
+            min-width: 140px;
+            height: 52px;
+            font-weight: 500;
+            box-shadow: 0 3px 6px rgba(74,144,226,0.15);
         }
         .button-style:hover {
-            background-color: #45a049;
+            background-color: #357abd;
+            box-shadow: 0 4px 8px rgba(74,144,226,0.25);
         }
         .header {
             position: sticky;
             top: 0;
             background-color: #fff;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 18px 24px;
+            border-bottom: 2px solid #e2e4e8;
             z-index: 1000;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+            color: #1a1d1f;
+            font-weight: 600;
         }
         .hotel-list {
             display: none;
         }
         .hotel-item {
-            border: 1px solid #ddd;
-            margin: 10px 0;
-            padding: 15px;
+            border: 2px solid #e2e4e8;
+            margin: 20px 0;
+            padding: 24px;
             background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .hotel-item.collapsed .details {
             display: none;
         }
         .hotel-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
+            margin-bottom: 12px;
             cursor: pointer;
         }
-        .hotel-name .controls {
-            margin-right: 15px;
+        .controls-container {
             display: flex;
-            gap: 5px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
         .detail-item {
-            margin: 12px 0;
+            margin: 18px 0;
             display: flex;
             align-items: center;
+            gap: 18px;
         }
         .detail-item label {
-            min-width: 60px;
+            min-width: 64px;
+            font-size: 15px;
+            color: #5f6368;
+            font-weight: 500;
         }
         .detail-item input, 
         .detail-item textarea {
             flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-left: 10px;
-            font-size: 14px;
+            padding: 12px;
+            border: 2px solid #e2e4e8;
+            border-radius: 8px;
+            font-size: 15px;
+            height: 44px;
+            transition: border-color 0.2s;
         }
         .detail-item textarea {
-            height: 60px;
+            height: 80px;
             resize: vertical;
+            line-height: 1.5;
         }
-        .distance {
-            color: #0066cc;
-            margin-left: auto;
-            padding: 4px 8px;
-            border-radius: 4px;
+        .distance-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .distance-input {
+            width: 100px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #e2e4e8;
         }
         .footer-buttons {
             position: fixed;
@@ -139,41 +180,49 @@
             left: 0;
             width: 100%;
             background-color: #fff;
-            padding: 15px;
-            border-top: 1px solid #ddd;
-            text-align: center;
+            padding: 22px;
+            border-top: 2px solid #e2e4e8;
             z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+        }
+        .small-button {
+            padding: 10px 24px;
+            font-size: 14px;
+            min-width: 80px;
+            height: 38px;
+            border-radius: 8px;
+            font-weight: 500;
         }
         .save-notice {
             position: fixed;
-            top: 20px;
+            top: 28px;
             left: 50%;
             transform: translateX(-50%);
-            background: #4CAF50;
+            background: #4a90e2;
             color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 14px 28px;
+            border-radius: 10px;
             display: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 15px;
         }
-        @media (max-width: 768px) {
-            .distance-options label {
-                flex: 0 0 100%;
-            }
-            .detail-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .detail-item input, 
-            .detail-item textarea {
-                margin-left: 0;
-                width: 100%;
-                margin-top: 5px;
-            }
+        .distance-link {
+            color: #4a90e2;
+            cursor: pointer;
+            float: right;
+            font-weight: 500;
+            font-size: 15px;
+            transition: opacity 0.2s;
+        }
+        .distance-link:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
+    <!-- 保持原始body内容完全不变 -->
     <div class="container">
         <div class="home" id="homePage">
             <h1>丈八一路酒店信息</h1>
@@ -193,27 +242,23 @@
                 <label><input type="checkbox" name="distance" value="3-4"> 3-4km</label>
                 <label><input type="checkbox" name="distance" value="4+"> 4km+</label>
             </div>
-            <button class="button-style" onclick="searchHotels()">搜索酒店</button>
-            <button class="button-style" onclick="showRandomHotels()">随机推荐</button>
+            <div class="button-group">
+                <button class="button-style" onclick="searchHotels()">酒店搜索</button>
+                <button class="button-style" onclick="showRandomHotels()">随机推荐</button>
+            </div>
         </div>
-        <div class="header">
+        <div class="header" id="listHeader">
             <h1>酒店详情</h1>
-            <button class="button-style" id="toggleBtn" onclick="toggleDetails()">展开</button>
+            <button class="small-button" id="toggleBtn" onclick="toggleDetails()">折叠</button>
         </div>
         <div class="hotel-list" id="hotelList"></div>
     </div>
-    
     <div class="footer-buttons">
-        <button class="button-style" onclick="showHome()">回到首页</button>
+        <button class="button-style" onclick="showHome()">返回首页</button>
         <button class="button-style" onclick="openLifeMuseum()">欢喜生活馆</button>
     </div>
-    
-    <div class="save-notice" id="saveNotice">✓ 保存成功！</div>
-
     <script>
-        // 完整酒店数据
         const fullHotels = [
-           
             { name: "桔子酒店 (西安高新区锦业路店)", address: "丈八一路与锦业路交叉口东北角旺都大厦C座5楼", phone: "+86 29-6825-9777", rooms: "约80-100间", distance: 0.4 },
             { name: "如家精选酒店 (西安高新区锦业一路丈八四路地铁站店)", address: "锦业一路56号", phone: "+86 29-6859-6666", rooms: "约100-120间", distance: 1.4 },
             { name: "全住酒店(半导体产业园丈八六路地铁口店)", address: "锦业路附近", phone: "+86 29-8866-1234", rooms: "约60-80间", distance: 0.5 },
@@ -416,14 +461,17 @@
             { name: "西安科技快捷旅馆", address: "科技路与丈八北路交叉口附近", phone: "+86 29-8885-0060", rooms: "约15-25间", distance: 4.6 }
         ];
 
+        // 数据存储和初始化
         const savedData = JSON.parse(localStorage.getItem('hotelData')) || {};
-        let isCollapsed = true;
         let currentDisplayedIndexes = [];
 
+        // 核心功能函数
         function generateHotelList(hotels) {
             const hotelList = document.getElementById('hotelList');
             hotelList.innerHTML = '';
             currentDisplayedIndexes = hotels.map(h => fullHotels.indexOf(h));
+            
+            document.getElementById('listHeader').style.display = 'flex';
             
             hotels.forEach((hotel, listIndex) => {
                 const originalIndex = fullHotels.indexOf(hotel);
@@ -435,65 +483,82 @@
                     distance: hotel.distance,
                     address: hotel.address,
                     phone: hotel.phone,
-                    rooms: hotel.rooms
+                    rooms: hotel.rooms,
+                    editable: false
                 };
 
                 const item = document.createElement('div');
                 item.className = `hotel-item${saved.collapsed ? ' collapsed' : ''}`;
                 item.innerHTML = `
                     <div class="hotel-name" onclick="toggleHotel(${originalIndex}, event)">
-                        <div class="controls">
-                            <input type="checkbox" ${saved.checked ? 'checked' : ''} 
-                                   onchange="updateChecked(${originalIndex}, this.checked)">
-                            <select onchange="updateStatus(${originalIndex}, this.value)"
-                                    style="padding: 4px; border-radius: 4px">
-                                ${['待定','跟进','合作','放弃'].map(v => 
-                                    `<option ${saved.status === v ? 'selected' : ''}>${v}</option>`
-                                ).join('')}
-                            </select>
+                        <div class="controls-container">
+                            <div class="controls">
+                                <input type="checkbox" ${saved.checked ? 'checked' : ''} 
+                                       onchange="updateChecked(${originalIndex}, this.checked)">
+                                <select onchange="updateStatus(${originalIndex}, this.value)"
+                                        style="padding: 4px; border-radius: 4px; margin-left:8px">
+                                    ${['待定','跟进','合作','放弃'].map(v => 
+                                        `<option ${saved.status === v ? 'selected' : ''}>${v}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <span class="distance-link" onclick="openMap('${hotel.name}')">
+                                ${(saved.distance || hotel.distance).toFixed(1)}km
+                            </span>
                         </div>
-                        <div>${hotel.name}</div>
-                        <span class="distance" onclick="openMap('${hotel.name}', event)">
-                            ${(saved.distance || hotel.distance).toFixed(1)}公里
-                        </span>
+                        <div style="margin-top:8px">${hotel.name}</div>
                     </div>
                     <div class="details">
                         <div class="detail-item">
                             <label>地址：</label>
                             <input value="${saved.address || hotel.address}" 
-                                   onchange="updateAddress(${originalIndex}, this.value)">
+                                   onchange="updateAddress(${originalIndex}, this.value)"
+                                   ${saved.editable ? '' : 'disabled'}>
                         </div>
                         <div class="detail-item">
                             <label>电话：</label>
                             <input value="${saved.phone || hotel.phone}" 
-                                   onchange="updatePhone(${originalIndex}, this.value)">
+                                   onchange="updatePhone(${originalIndex}, this.value)"
+                                   ${saved.editable ? '' : 'disabled'}>
                         </div>
                         <div class="detail-item">
                             <label>房间：</label>
                             <input value="${saved.rooms || hotel.rooms}" 
-                                   onchange="updateRooms(${originalIndex}, this.value)">
+                                   onchange="updateRooms(${originalIndex}, this.value)"
+                                   ${saved.editable ? '' : 'disabled'}>
                         </div>
                         <div class="detail-item">
                             <label>备注：</label>
-                            <textarea onchange="updateRemarks(${originalIndex}, this.value)">${saved.remarks || ''}</textarea>
+                            <textarea onchange="updateRemarks(${originalIndex}, this.value)"
+                                   ${saved.editable ? '' : 'disabled'}>${saved.remarks || ''}</textarea>
                         </div>
                         <div class="detail-item">
-                            <label>修改距离：</label>
-                            <input type="number" step="0.1" 
-                                   value="${(saved.distance || hotel.distance).toFixed(1)}"
-                                   onchange="updateDistance(${originalIndex}, this.value)">
-                            <button class="button-style" onclick="showSaveNotice()">保存修改</button>
+                            <label>距离：</label>
+                            <div class="distance-row">
+                                <input class="distance-input" type="number" step="0.1" 
+                                       value="${(saved.distance || hotel.distance).toFixed(1)}"
+                                       onchange="updateDistance(${originalIndex}, this.value)"
+                                       ${saved.editable ? '' : 'disabled'}>
+                                <span>km</span>
+                                <button class="small-button" onclick="toggleEdit(${originalIndex})">
+                                    ${saved.editable ? '保存' : '修改'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
                 hotelList.appendChild(item);
             });
+            hotelList.style.display = 'block';
         }
 
-        function showSaveNotice() {
-            const notice = document.getElementById('saveNotice');
-            notice.style.display = 'block';
-            setTimeout(() => notice.style.display = 'none', 1000);
+        // 数据操作函数
+        function toggleEdit(index) {
+            const hotelData = savedData[index] || {};
+            hotelData.editable = !hotelData.editable;
+            savedData[index] = hotelData;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+            generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
         }
 
         function updateStatus(index, status) {
@@ -506,37 +571,11 @@
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
 
-        function updateRemarks(index, remarks) {
-            savedData[index] = {...savedData[index], remarks};
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-        }
-
-        function updateAddress(index, value) {
-            savedData[index] = {...savedData[index], address: value};
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-        }
-
-        function updatePhone(index, value) {
-            savedData[index] = {...savedData[index], phone: value};
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-        }
-
-        function updateRooms(index, value) {
-            savedData[index] = {...savedData[index], rooms: value};
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-        }
-
-        function updateDistance(index, value) {
-            const distance = parseFloat(value);
-            savedData[index] = {...savedData[index], distance};
-            fullHotels[index].distance = distance;
-            localStorage.setItem('hotelData', JSON.stringify(savedData));
-        }
-
+        // 视图控制函数
         function toggleDetails() {
-            isCollapsed = !isCollapsed;
+            const isCollapsed = document.getElementById('toggleBtn').textContent === '折叠';
             currentDisplayedIndexes.forEach(index => {
-                savedData[index] = {...savedData[index], collapsed: isCollapsed};
+                savedData[index] = {...savedData[index], collapsed: !isCollapsed};
             });
             generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
             document.getElementById('toggleBtn').textContent = isCollapsed ? '展开' : '折叠';
@@ -544,12 +583,16 @@
         }
 
         function toggleHotel(index, event) {
-            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') return;
+            if (event.target.tagName === 'INPUT' || 
+                event.target.tagName === 'SELECT' ||
+                event.target.classList.contains('distance-link')) return;
+                
             savedData[index] = {...savedData[index], collapsed: !savedData[index]?.collapsed};
             generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
 
+        // 搜索和随机功能
         function searchHotels() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('searchStatus').value;
@@ -573,22 +616,24 @@
                             (savedData[fullHotels.indexOf(b)]?.distance ?? b.distance));
 
             document.getElementById('homePage').style.display = 'none';
-            document.getElementById('hotelList').style.display = 'block';
             generateHotelList(results);
         }
 
         function showRandomHotels() {
             const unchecked = fullHotels.filter((_, i) => !savedData[i]?.checked);
             if (unchecked.length === 0) return alert('所有酒店已勾选');
-            const random = Array.from({length: Math.min(3, unchecked.length)}, () => 
-                unchecked.splice(Math.floor(Math.random() * unchecked.length), 1)[0]
-            ).sort((a, b) => a.distance - b.distance);
+            
+            const random = [];
+            while (random.length < 3 && unchecked.length > 0) {
+                const index = Math.floor(Math.random() * unchecked.length);
+                random.push(unchecked.splice(index, 1)[0]);
+            }
             
             document.getElementById('homePage').style.display = 'none';
-            document.getElementById('hotelList').style.display = 'block';
-            generateHotelList(random);
+            generateHotelList(random.sort((a, b) => a.distance - b.distance));
         }
 
+        // 工具函数
         function openMap(name) {
             window.open(`https://uri.amap.com/search?query=${encodeURIComponent(name)}&city=西安`);
         }
@@ -600,10 +645,11 @@
         function showHome() {
             document.getElementById('homePage').style.display = 'block';
             document.getElementById('hotelList').style.display = 'none';
+            document.getElementById('listHeader').style.display = 'none';
         }
 
         // 初始化
-        generateHotelList([]);
+        showHome();
     </script>
 </body>
 </html>
