@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丈八一路酒店信息管理</title>
+    <style>
+        body{font-family:"Helvetica Neue",system-ui,sans-serif;margin:0;padding:0;background-color:#f8f9fb;min-height:100vh;position:relative}.container{max-width:1200px;margin:0 auto;padding:20px;padding-bottom:126px}.home{text-align:center;padding:20px}.home h1{margin-bottom:22px;color:#1a1d1f;font-size:28px;font-weight:600;letter-spacing:0.5px}#searchInput,#searchStatus{padding:12px 14px;margin:10px 0;width:100%;max-width:560px;border-radius:10px;border:2px solid #e2e4e8;box-sizing:border-box;font-size:16px;height:47px;transition:border-color 0.2s}#searchInput:focus,#searchStatus:focus{border-color:#3a6ea5;outline:none}.distance-options{margin:18px auto;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:560px}.distance-options label{padding:12px;border:2px solid #e2e4e8;border-radius:10px;background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:#454950;transition:all 0.2s}.distance-options label:hover{border-color:#3a6ea5}.button-group{max-width:560px;margin:20px auto;display:flex;justify-content:center;gap:18px;width:100%}.button-style{flex:none;padding:14px;background-color:#3a6ea5;color:white;border:none;border-radius:10px;cursor:pointer;font-size:16px;transition:all 0.2s;width:108px;height:47px;font-weight:500;box-shadow:0 3px 6px rgba(58,110,165,0.15)}.button-style:hover{background-color:#2c5680;box-shadow:0 4px 8px rgba(58,110,165,0.25)}.header{position:sticky;top:0;background-color:#fff;padding:16px 20px;border-bottom:2px solid #e2e4e8;z-index:1000;display:none;align-items:center;justify-content:space-between}.header h1{font-size:20px;margin:0;color:#1a1d1f;font-weight:600}.hotel-list{display:none}.hotel-item{border:2px solid #e2e4e8;margin:18px 0;padding:20px;background-color:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}.hotel-item.collapsed .details{display:none}.hotel-name{margin-bottom:10px;cursor:pointer;line-height:1.2}.controls-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.detail-item{margin:10px 0;display:flex;align-items:center;gap:0}.detail-item label{min-width:48px;font-size:15px;color:#5f6368;font-weight:500}.detail-item input,.detail-item textarea{flex:1;padding:7px;border:2px solid #e2e4e8;border-radius:7px;font-size:15px;height:32px;transition:border-color 0.2s}.detail-item textarea{height:54px;resize:vertical;line-height:1.4}.distance-row{display:flex;align-items:center;gap:6px}.distance-input{width:50px;padding:6px;border-radius:7px;border:2px solid #e2e4e8;height:32px}.footer-buttons{position:fixed;bottom:0;left:0;right:0;background-color:#fff;padding:18px;border-top:2px solid #e2e4e8;z-index:1000;display:flex;justify-content:center;gap:18px}.small-button{padding:9px 20px;font-size:14px;min-width:72px;height:34px;border-radius:7px;font-weight:500}.save-notice{position:fixed;top:25px;left:50%;transform:translateX(-50%);background:#3a6ea5;color:white;padding:12px 24px;border-radius:9px;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:15px}.distance-link{color:#3a6ea5;cursor:pointer;float:right;font-weight:500;font-size:15px;transition:opacity 0.2s}.distance-link:hover{opacity:0.8}.import-export{position:absolute;top:18px;right:18px;display:flex;gap:6px}.import-export button{padding:5px 10px;font-size:12px;background:#3a6ea5;color:white;border:none;border-radius:4px;cursor:pointer;transition:all 0.2s}.import-export button:hover{background:#2c5680}.delete-btn{background:#ff4757!important;margin-left:6px;padding:3px 6px;border-radius:3px;font-size:12px;height:26px}.new-hotel-form{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border-radius:11px;box-shadow:0 0 18px rgba(0,0,0,0.2);z-index:1001;width:90%;max-width:600px;display:none}.button-group.vertical{flex-direction:column}
+        .save-btn { background-color: #888 !important; }
+        .fold-btn { background-color: #888 !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="import-export">
+            <button onclick="exportData()">导出</button>
+            <button onclick="document.getElementById('importInput').click()">导入</button>
+            <input type="file" id="importInput" style="display:none" onchange="importData(event)">
+        </div>
+
+        <div class="home" id="homePage">
+            <h1>丈八一路酒店信息</h1>
+            <input type="text" id="searchInput" placeholder="按酒店名称搜索...">
+            <select id="searchStatus">
+                <option value="">所有状态</option>
+                <option value="待定">待定</option>
+                <option value="跟进">跟进</option>
+                <option value="合作">合作</option>
+                <option value="放弃">放弃</option>
+            </select>
+            <div class="distance-options">
+                <label><input type="checkbox" name="distance" value="all" checked> 全部</label>
+                <label><input type="checkbox" name="distance" value="0-1"> 1km内</label>
+                <label><input type="checkbox" name="distance" value="1-2"> 1-2km</label>
+                <label><input type="checkbox" name="distance" value="2-3"> 2-3km</label>
+                <label><input type="checkbox" name="distance" value="3-4"> 3-4km</label>
+                <label><input type="checkbox" name="distance" value="4+"> 4km+</label>
+            </div>
+            <div class="button-group">
+                <button class="button-style" onclick="searchHotels()">酒店搜索</button>
+                <button class="button-style" onclick="showRandomHotels()">随机推荐</button>
+            </div>
+            <div class="button-group" style="margin-top:18px">
+                <button class="button-style" onclick="showNewHotelForm()">新增酒店</button>
+            </div>
+        </div>
+
+        <div class="new-hotel-form" id="newHotelForm">
+            <div class="hotel-item">
+                <div class="hotel-name">
+                    <div class="controls-container">
+                        <div>新建酒店信息</div>
+                        <button class="delete-btn" onclick="closeNewHotelForm()">关闭</button>
+                    </div>
+                </div>
+                <div class="details">
+                    <div class="detail-item">
+                        <label>名称：</label>
+                        <input id="newHotelName">
+                    </div>
+                    <div class="detail-item">
+                        <label>地址：</label>
+                        <input id="newHotelAddress">
+                    </div>
+                    <div class="detail-item">
+                        <label>电话：</label>
+                        <input id="newHotelPhone">
+                    </div>
+                    <div class="detail-item">
+                        <label>房间：</label>
+                        <input id="newHotelRooms">
+                    </div>
+                    <div class="detail-item">
+                        <label>距离：</label>
+                        <div class="distance-row">
+                            <input class="distance-input" type="number" step="0.1" id="newHotelDistance">
+                            <span>km</span>
+                        </div>
+                    </div>
+                    <div class="button-group vertical">
+                        <button class="button-style" onclick="saveNewHotel()">保存酒店</button>
+                        <button class="button-style" onclick="closeNewHotelForm()">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="header" id="listHeader">
+            <h1>酒店详情</h1>
+            <button class="small-button" id="toggleBtn" onclick="toggleDetails()">展开</button>
+        </div>
+        <div class="hotel-list" id="hotelList"></div>
+    </div>
+
+    <div class="footer-buttons">
+        <button class="button-style" onclick="showHome()">返回首页</button>
+        <button class="button-style" onclick="openLifeMuseum()">欢喜生活馆</button>
+    </div>
+    
+    <div class="save-notice" id="saveNotice">✓ 保存成功！</div>
+
+    <script>
+        let fullHotels = [
+            {name:"桔子酒店 (西安高新区锦业路店)",address:"丈八一路与锦业路交叉口东北角旺都大厦C座5楼",phone:"+86 29-6825-9777",rooms:"约80-100间",distance:0.4},
+            {name:"如家精选酒店 (西安高新区锦业一路丈八四路地铁站店)",address:"锦业一路56号",phone:"+86 29-6859-6666",rooms:"约100-120间",distance:1.4},
+            {name:"全住酒店(半导体产业园丈八六路地铁口店)",address:"锦业路附近",phone:"+86 29-8866-1234",rooms:"约60-80间",distance:0.5}
+        ];
+        const savedData = JSON.parse(localStorage.getItem('hotelData')) || {};
+        let currentDisplayedIndexes = [];
+
+        function generateHotelList(hotels) {
+            const hotelList = document.getElementById('hotelList');
+            hotelList.innerHTML = '';
+            currentDisplayedIndexes = hotels.map(h => fullHotels.indexOf(h));
+            document.getElementById('listHeader').style.display = 'flex';
+            
+            hotels.forEach((hotel, listIndex) => {
+                const originalIndex = fullHotels.indexOf(hotel);
+                const saved = savedData[originalIndex] || {
+                    status: '待定',
+                    remarks: '',
+                    checked: false,
+                    collapsed: true,
+                    distance: hotel.distance,
+                    address: hotel.address,
+                    phone: hotel.phone,
+                    rooms: hotel.rooms,
+                    editable: false
+                };
+
+                const item = document.createElement('div');
+                item.className = `hotel-item${saved.collapsed ? ' collapsed' : ''}`;
+                
+                item.innerHTML = `
+                    <div class="hotel-name" onclick="toggleHotel(${originalIndex}, event)">
+                        <div class="controls-container">
+                            <div class="controls">
+                                <input type="checkbox" ${saved.checked ? 'checked' : ''} onchange="updateChecked(${originalIndex}, this.checked)">
+                                <select onchange="updateStatus(${originalIndex}, this.value)" style="padding:4px;border-radius:4px;margin-left:8px">
+                                    ${['待定','跟进','合作','放弃'].map(v => `<option ${saved.status === v ? 'selected' : ''}>${v}</option>`).join('')}
+                                </select>
+                                ${saved.editable ? `<button class="delete-btn" onclick="deleteHotel(${originalIndex})">删除</button>` : ''}
+                            </div>
+                            <span class="distance-link" onclick="openMap('${hotel.name}')">${(saved.distance || hotel.distance).toFixed(1)}km</span>
+                        </div>
+                        <div style="margin-top:6px">${hotel.name}</div>
+                    </div>
+                    <div class="details">
+                        <div class="detail-item">
+                            <label>地址：</label>
+                            <input value="${saved.address || hotel.address}" onchange="updateAddress(${originalIndex}, this.value)" ${saved.editable ? '' : 'disabled'}>
+                        </div>
+                        <div class="detail-item">
+                            <label>电话：</label>
+                            <input value="${saved.phone || hotel.phone}" onchange="updatePhone(${originalIndex}, this.value)" ${saved.editable ? '' : 'disabled'}>
+                        </div>
+                        <div class="detail-item">
+                            <label>房间：</label>
+                            <input value="${saved.rooms || hotel.rooms}" onchange="updateRooms(${originalIndex}, this.value)" ${saved.editable ? '' : 'disabled'}>
+                        </div>
+                        <div class="detail-item">
+                            <label>备注：</label>
+                            <textarea onchange="updateRemarks(${originalIndex}, this.value)" ${saved.editable ? '' : 'disabled'}>${saved.remarks || ''}</textarea>
+                        </div>
+                        <div class="detail-item">
+                            <label>距离：</label>
+                            <div class="distance-row">
+                                <input class="distance-input" type="number" step="0.1" value="${(saved.distance || hotel.distance).toFixed(1)}" onchange="updateDistance(${originalIndex}, this.value)" ${saved.editable ? '' : 'disabled'}>
+                                <span>km</span>
+                                <button class="small-button ${saved.editable ? 'save-btn' : ''}" onclick="toggleEdit(${originalIndex})">${saved.editable ? '保存' : '修改'}</button>
+                            </div>
+                        </div>
+                    </div>`;
+                hotelList.appendChild(item);
+            });
+            hotelList.style.display = 'block';
+        }
+
+        function deleteHotel(index) {
+            if (confirm("确定要永久删除该酒店吗？")) {
+                fullHotels.splice(index, 1);
+                delete savedData[index];
+                localStorage.setItem('hotelData', JSON.stringify(savedData));
+                searchHotels();
+            }
+        }
+
+        function showNewHotelForm() {
+            document.getElementById('newHotelForm').style.display = 'block';
+            ['Name','Address','Phone','Rooms','Distance'].forEach(id => {
+                document.getElementById(`newHotel${id}`).value = '';
+            });
+        }
+
+        function closeNewHotelForm() {
+            document.getElementById('newHotelForm').style.display = 'none';
+        }
+
+        function saveNewHotel() {
+            const newHotel = {
+                name: document.getElementById('newHotelName').value.trim(),
+                address: document.getElementById('newHotelAddress').value.trim(),
+                phone: document.getElementById('newHotelPhone').value.trim(),
+                rooms: document.getElementById('newHotelRooms').value.trim(),
+                distance: parseFloat(document.getElementById('newHotelDistance').value)
+            };
+            if (!newHotel.name || isNaN(newHotel.distance)) return alert('请填写酒店名称和有效距离');
+            fullHotels.push(newHotel);
+            const newIndex = fullHotels.length - 1;
+            savedData[newIndex] = {
+                status: '待定',
+                remarks: '',
+                checked: false,
+                collapsed: false,
+                editable: true,
+                ...newHotel
+            };
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+            closeNewHotelForm();
+            showSaveNotice('酒店添加成功！');
+            searchHotels();
+        }
+
+        function exportData() {
+            const data = {
+                fullHotels: fullHotels,
+                savedData: savedData,
+                version: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `酒店数据_${new Date().toLocaleDateString()}.json`;
+            a.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.fullHotels || !data.savedData) throw new Error('无效数据文件');
+                    if (confirm("导入数据将覆盖现有数据，确定继续吗？")) {
+                        fullHotels = data.fullHotels;
+                        Object.assign(savedData, data.savedData);
+                        localStorage.setItem('hotelData', JSON.stringify(savedData));
+                        alert('导入成功，即将刷新页面');
+                        location.reload();
+                    }
+                } catch(e) { alert('文件解析失败: ' + e.message) }
+            };
+            reader.readAsText(file);
+        }
+
+        function showSaveNotice(message) {
+            const notice = document.getElementById('saveNotice');
+            notice.textContent = message;
+            notice.style.display = 'block';
+            setTimeout(() => notice.style.display = 'none', 2000);
+        }
+
+        function searchHotels() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('searchStatus').value;
+            const distanceCheckboxes = document.querySelectorAll('.distance-options input[type="checkbox"]:checked');
+            const distanceRanges = Array.from(distanceCheckboxes).map(c => c.value);
+            
+            let filtered = fullHotels.filter(hotel => {
+                const nameMatch = hotel.name.toLowerCase().includes(searchTerm);
+                const statusMatch = !statusFilter || (savedData[fullHotels.indexOf(hotel)]?.status === statusFilter);
+                const distance = hotel.distance;
+                const distanceMatch = distanceRanges.some(range => {
+                    if (range === 'all') return true;
+                    if (range === '0-1') return distance <= 1;
+                    if (range === '1-2') return distance > 1 && distance <= 2;
+                    if (range === '2-3') return distance > 2 && distance <= 3;
+                    if (range === '3-4') return distance > 3 && distance <= 4;
+                    if (range === '4+') return distance > 4;
+                    return false;
+                });
+                return nameMatch && statusMatch && distanceMatch;
+            });
+            generateHotelList(filtered);
+            document.getElementById('homePage').style.display = 'none';
+        }
+
+        function showRandomHotels() {
+            const randomHotels = fullHotels.sort(() => Math.random() - 0.5).slice(0, 5);
+            generateHotelList(randomHotels);
+            document.getElementById('homePage').style.display = 'none';
+        }
+
+        function toggleHotel(index, event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON') return;
+            const hotelItem = event.currentTarget.closest('.hotel-item');
+            hotelItem.classList.toggle('collapsed');
+            savedData[index].collapsed = !savedData[index].collapsed;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateStatus(index, value) {
+            savedData[index] = savedData[index] || {};
+            savedData[index].status = value;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateChecked(index, checked) {
+            savedData[index] = savedData[index] || {};
+            savedData[index].checked = checked;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateAddress(index, value) {
+            savedData[index].address = value;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updatePhone(index, value) {
+            savedData[index].phone = value;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateRooms(index, value) {
+            savedData[index].rooms = value;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateRemarks(index, value) {
+            savedData[index].remarks = value;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function updateDistance(index, value) {
+            savedData[index].distance = parseFloat(value);
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function toggleEdit(index) {
+            savedData[index].editable = !savedData[index].editable;
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+            searchHotels();
+        }
+
+        function toggleDetails() {
+            const btn = document.getElementById('toggleBtn');
+            const isCollapsed = btn.textContent === '展开';
+            btn.textContent = isCollapsed ? '折叠' : '展开';
+            btn.classList.toggle('fold-btn', !isCollapsed);
+            document.querySelectorAll('.hotel-item').forEach(item => {
+                item.classList.toggle('collapsed', !isCollapsed);
+                const index = currentDisplayedIndexes[Array.from(item.parentNode.children).indexOf(item)];
+                if (index !== undefined) savedData[index].collapsed = !isCollapsed;
+            });
+            localStorage.setItem('hotelData', JSON.stringify(savedData));
+        }
+
+        function showHome() {
+            document.getElementById('homePage').style.display = 'block';
+            document.getElementById('listHeader').style.display = 'none';
+            document.getElementById('hotelList').style.display = 'none';
+        }
+
+        function openMap(name) {
+            window.open(`https://map.qq.com/search?keyword=${encodeURIComponent(name)}`, '_blank');
+        }
+
+        function openLifeMuseum() {
+            window.open('http://www.thisnet.cn/wxurl/mini.php', '_blank');
+        }
+
+        showHome();
+    </script>
+</body>
+</html>
