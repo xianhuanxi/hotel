@@ -252,7 +252,7 @@
         </div>
         <div class="header" id="listHeader">
             <h1>酒店详情</h1>
-            <button class="small-button" id="toggleBtn" onclick="toggleDetails()">折叠</button>
+            <button class="small-button" id="toggleBtn" onclick="toggleDetails()">展开</button>
         </div>
         <div class="hotel-list" id="hotelList"></div>
     </div>
@@ -391,12 +391,12 @@
 
         // 视图控制函数
         function toggleDetails() {
-            const isCollapsed = document.getElementById('toggleBtn').textContent === '折叠';
+            const isCollapsed = document.getElementById('toggleBtn').textContent === '展开';
             currentDisplayedIndexes.forEach(index => {
                 savedData[index] = {...savedData[index], collapsed: !isCollapsed};
             });
             generateHotelList(currentDisplayedIndexes.map(i => fullHotels[i]));
-            document.getElementById('toggleBtn').textContent = isCollapsed ? '展开' : '折叠';
+            document.getElementById('toggleBtn').textContent = isCollapsed ? '折叠' : '展开';
             localStorage.setItem('hotelData', JSON.stringify(savedData));
         }
 
