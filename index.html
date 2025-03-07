@@ -198,12 +198,26 @@
 
         function exportData(){
             const data={fullHotels:fullHotels,savedData:savedData,version:new Date().toISOString()};
+            const content = JSON.stringify(data);
             const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
             const url=URL.createObjectURL(blob);
             const a=document.createElement('a');
             a.href=url;
             a.download=`酒店数据_${new Date().toLocaleDateString()}.json`;
             a.click();
+             if (/MicroMessenger/i.test(navigator.userAgent)) {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
+    document.body.appendChild(iframe);
+    setTimeout(() => document.body.removeChild(iframe), 1000);
+  } else {
+    // 正常浏览器处理
+    const blob = new Blob([content], {type: 'application/json'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `酒店数据_${new Date().toLocaleDateString()}.json`;
+    link.click();
         }
 
         function importData(event){
